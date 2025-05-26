@@ -3,15 +3,15 @@ import {
 	Get,
 	Post,
 	Body,
-	Patch,
 	Param,
 	Delete,
+	Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
 	constructor(private readonly userService: UserService) {}
 
@@ -30,10 +30,18 @@ export class UserController {
 		return this.userService.findOne(id);
 	}
 
-	@Patch(':id')
+	@Put(':id')
 	update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
 		return this.userService.update(id, updateUserDto);
 	}
+
+	// Add guard @IsAdmin()
+	@Put(':id/role')
+	assignRole(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+		return this.userService.assignRole(id, updateUserDto);
+	}
+
+	// Add findByService during a future update
 
 	@Delete(':id')
 	remove(@Param('id') id: string) {

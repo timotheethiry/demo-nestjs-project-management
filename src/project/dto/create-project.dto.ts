@@ -18,7 +18,7 @@ export class CreateProjectDto {
 	@IsString()
 	@MinLength(3)
 	@MaxLength(50)
-	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,!?()'"%€$+*#]*$/, {
+	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
 		message: 'Forbidden symbols or characters in username',
 	})
 	name: string;
@@ -26,7 +26,7 @@ export class CreateProjectDto {
 	@IsNotEmpty()
 	@IsString()
 	@MaxLength(3000)
-	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,!?()'"%€$+*#]*$/, {
+	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
 		message: 'Forbidden symbols or characters in username',
 	})
 	description: string;
@@ -44,7 +44,7 @@ export class CreateProjectDto {
 	@IsOptional()
 	@IsString()
 	@MaxLength(3000)
-	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,!?()'"%€$+*#]*$/, {
+	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
 		message: 'Forbidden symbols or characters in username',
 	})
 	objectives?: string;
@@ -52,7 +52,7 @@ export class CreateProjectDto {
 	@IsOptional()
 	@IsString()
 	@MaxLength(3000)
-	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,!?()'"%€$+*#]*$/, {
+	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
 		message: 'Forbidden symbols or characters in username',
 	})
 	context?: string;
@@ -60,7 +60,7 @@ export class CreateProjectDto {
 	@IsOptional()
 	@IsString()
 	@MaxLength(3000)
-	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,!?()'"%€$+*#]*$/, {
+	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
 		message: 'Forbidden symbols or characters in username',
 	})
 	expectedResults?: string;
@@ -75,14 +75,14 @@ export class CreateProjectDto {
 
 	@IsUUID()
 	@MaxLength(36)
-	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,!?()'"%€$+*#]*$/, {
+	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
 		message: 'Forbidden symbols or characters in username',
 	})
 	departmentId?: string;
 
 	@IsUUID()
 	@MaxLength(36)
-	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,!?()'"%€$+*#]*$/, {
+	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
 		message: 'Forbidden symbols or characters in username',
 	})
 	overseerId?: string;

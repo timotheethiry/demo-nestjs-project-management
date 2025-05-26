@@ -24,7 +24,7 @@ export class User {
 	@Column()
 	passwordHash: string;
 
-	@Column({ type: 'enum', enum: ['admin', 'user'] })
+	@Column()
 	role: 'admin' | 'user';
 
 	@OneToMany(() => Project, (project) => project.createdBy)

@@ -12,16 +12,16 @@ export class CreateUserDto {
 	@IsNotEmpty()
 	@IsString()
 	@MaxLength(50)
-	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,!?()'"%€$+*#]*$/, {
-		message: 'Forbidden symbols or characters in username',
+	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
+		message: 'Forbidden symbols or characters in firstname',
 	})
 	firstName: string;
 
 	@IsNotEmpty()
 	@IsString()
 	@MaxLength(50)
-	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,!?()'"%€$+*#]*$/, {
-		message: 'Forbidden symbols or characters in username',
+	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
+		message: 'Forbidden symbols or characters in lastname',
 	})
 	lastName: string;
 
@@ -31,8 +31,8 @@ export class CreateUserDto {
 
 	@IsString()
 	@MaxLength(50)
-	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,!?()'"%€$+*#]*$/, {
-		message: 'Forbidden symbols or characters in username',
+	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
+		message: 'Forbidden symbols or characters in password',
 	})
 	@IsStrongPassword(
 		{
