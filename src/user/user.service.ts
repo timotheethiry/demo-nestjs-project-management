@@ -1,20 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
 	constructor(@InjectRepository(User) private userRepo: Repository<User>) {}
 
-	// Add bcrypt during roadmap step 3 (Authentication)
-	create(createUserDto: CreateUserDto): Promise<User> {
+	async create(createUserDto: CreateUserDto): Promise<User> {
 		const role = createUserDto.role ?? { role: 'user' };
+		const passwordHash = await bcrypt.hash(createUserDto.password, 10);
 		const user = this.userRepo.create({
 			...createUserDto,
-			passwordHash: createUserDto.password,
+			passwordHash: passwordHash,
 			role,
 		});
 		return this.userRepo.save(user);
@@ -41,10 +42,9 @@ export class UserService {
 		if (lastName) user.lastName = lastName;
 		if (email) user.email = email;
 
-		// Add bcrypt during roadmap step 3 (Authentication)
 		if (password) {
-			const hashedPassword = password;
-			user.passwordHash = hashedPassword;
+			const passwordHash = await bcrypt.hash(password, 10);
+			user.passwordHash = passwordHash;
 		}
 
 		return this.userRepo.save(user);
