@@ -1,4 +1,14 @@
-import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+	ArrayMaxSize,
+	ArrayUnique,
+	IsArray,
+	IsOptional,
+	IsString,
+	IsUUID,
+	Matches,
+	MaxLength,
+	MinLength,
+} from 'class-validator';
 
 export class CreateDepartmentDto {
 	@IsString()
@@ -8,4 +18,11 @@ export class CreateDepartmentDto {
 		message: 'Forbidden symbols or characters in username',
 	})
 	name: string;
+
+	@IsOptional()
+	@IsArray()
+	@ArrayMaxSize(100)
+	@ArrayUnique()
+	@IsUUID('all', { each: true })
+	memberIds?: string[];
 }

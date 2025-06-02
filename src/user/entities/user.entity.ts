@@ -1,8 +1,10 @@
+import { Department } from 'src/department/entities/department.entity';
 import { Project } from 'src/project/entities/project.entity';
 import {
 	Column,
 	Entity,
 	ManyToMany,
+	ManyToOne,
 	OneToMany,
 	PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -26,6 +28,12 @@ export class User {
 
 	@Column()
 	role: 'admin' | 'user';
+
+	@ManyToOne(() => Department, (department) => department.members, {
+		nullable: true,
+		eager: true,
+	})
+	department: Department;
 
 	@OneToMany(() => Project, (project) => project.createdBy)
 	createdProjects: Project[];

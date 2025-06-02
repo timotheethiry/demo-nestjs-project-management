@@ -3,9 +3,9 @@ import {
 	Get,
 	Post,
 	Body,
-	Patch,
 	Param,
 	Delete,
+	Put,
 } from '@nestjs/common';
 import { DepartmentService } from './department.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
@@ -30,7 +30,7 @@ export class DepartmentController {
 		return this.departmentService.findOne(id);
 	}
 
-	@Patch(':id')
+	@Put(':id')
 	update(
 		@Param('id') id: string,
 		@Body() updateDepartmentDto: UpdateDepartmentDto,

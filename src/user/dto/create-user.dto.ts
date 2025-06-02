@@ -1,9 +1,12 @@
 import {
+	IsDefined,
 	IsEmail,
 	IsEnum,
 	IsNotEmpty,
+	IsOptional,
 	IsString,
 	IsStrongPassword,
+	IsUUID,
 	Matches,
 	MaxLength,
 } from 'class-validator';
@@ -53,4 +56,9 @@ export class CreateUserDto {
 
 	@IsEnum(['admin', 'user'])
 	role: 'admin' | 'user';
+
+	@IsOptional()
+	@IsDefined()
+	@IsUUID()
+	departmentId: string;
 }
