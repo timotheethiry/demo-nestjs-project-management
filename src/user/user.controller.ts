@@ -12,6 +12,10 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Public } from 'src/shared/decorators/public.decorator';
+import { Roles } from 'src/shared/decorators/roles.decorator';
+import { Role } from 'src/shared/role.enum';
+import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
+import { JwtPayload } from 'src/shared/types/jwt-payload.interface';
 
 @Controller('users')
 export class UserController {
@@ -39,18 +43,22 @@ export class UserController {
 	}
 
 	@Put(':id')
-	update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-		return this.userService.update(id, updateUserDto);
+	update(
+		@Param('id') id: string,
+		@Body() updateUserDto: UpdateUserDto,
+		@CurrentUser() currentUser: JwtPayload,
+	) {
+		return this.userService.update(id, updateUserDto, currentUser);
 	}
 
-	// Add guard @IsAdmin()
 	@Put(':id/role')
+	@Roles(Role.Admin)
 	assignRole(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
 		return this.userService.assignRole(id, updateUserDto);
 	}
 
-	// Add permission @IsAdmin()
 	@Put(':id/assignment')
+	@Roles(Role.Admin)
 	assignDepartmentToUser(
 		@Param('id') id: string,
 		@Body() updateUserDto: UpdateUserDto,
@@ -63,8 +71,8 @@ export class UserController {
 		);
 	}
 
-	// Add permission @IsAdmin()
 	@Delete(':id')
+	@Roles(Role.Admin)
 	remove(@Param('id') id: string) {
 		return this.userService.remove(id);
 	}

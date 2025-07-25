@@ -4,24 +4,25 @@ import {
 	ForbiddenException,
 	Injectable,
 	NotFoundException,
+	UnauthorizedException,
 } from '@nestjs/common';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { JwtPayload } from 'src/shared/types/jwt-payload.interface';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Project } from './entities/project.entity';
-import { Repository } from 'typeorm';
-import { UserService } from 'src/user/user.service';
-import { Department } from 'src/department/entities/department.entity';
-import { User } from 'src/user/entities/user.entity';
-import { Role } from 'src/shared/role.enum';
 import { DepartmentService } from 'src/department/department.service';
-import { ProjectStatus } from './types/status.enum';
+import { Department } from 'src/department/entities/department.entity';
+import { PermissionsService } from 'src/permissions/permissions.service';
+import { JwtPayload } from 'src/shared/types/jwt-payload.interface';
+import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
+import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectContentDto } from './dto/update-content.dto';
-import { UpdateProjectStatusDto } from './dto/update-status.dto';
 import { UpdateProjectDatesDto } from './dto/update-dates.dto';
 import { UpdateProjectDepartmentDto } from './dto/update-department.dto';
-import { UpdateProjectOverseerDto } from './dto/update-overseer.dto';
 import { UpdateProjectMembersDto } from './dto/update-members.dto';
+import { UpdateProjectOverseerDto } from './dto/update-overseer.dto';
+import { UpdateProjectStatusDto } from './dto/update-status.dto';
+import { Project } from './entities/project.entity';
+import { ProjectStatus } from './types/status.enum';
 
 @Injectable()
 export class ProjectService {
@@ -29,9 +30,9 @@ export class ProjectService {
 		@InjectRepository(Project) private projectRepo: Repository<Project>,
 		private userService: UserService,
 		private departmentService: DepartmentService,
+		private permissionsService: PermissionsService,
 	) {}
 
-	// Restrict to admin
 	async create(createProjectDto: CreateProjectDto, currentUser: JwtPayload) {
 		const cleanedDto = {
 			...createProjectDto,
@@ -88,7 +89,6 @@ export class ProjectService {
 		return project;
 	}
 
-	// TODO: Restrict to admin and maybe later to project overseer
 	async updateContent(
 		id: string,
 		{
@@ -104,6 +104,13 @@ export class ProjectService {
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
+		}
+
+		if (
+			!this.permissionsService.isAdmin(currentUser) &&
+			!this.permissionsService.isProjectOverseer(currentUser, project)
+		) {
+			throw new UnauthorizedException('Not allowed to update this project');
 		}
 
 		const current = {
@@ -175,7 +182,7 @@ export class ProjectService {
 		}
 
 		if (name && name !== current.name) {
-			if (currentUser.role !== Role.Admin) {
+			if (!this.permissionsService.isAdmin(currentUser)) {
 				throw new ForbiddenException(
 					`Only admins can modify the project name.`,
 				);
@@ -248,6 +255,7 @@ export class ProjectService {
 	}
 
 	// TODO: search for logic to extract
+	// maybe baseline is being project overseer or admin, and restrict to admin needed
 	async updateStatus(
 		id: string,
 		updateProjectDto: UpdateProjectStatusDto,
@@ -271,7 +279,7 @@ export class ProjectService {
 						ProjectStatus.ON_HOLD.toString(),
 					].includes(project.status)
 				) {
-					if (currentUser.role !== Role.Admin) {
+					if (!this.permissionsService.isAdmin(currentUser)) {
 						throw new ForbiddenException(
 							'Only an admin may reopen a canceled or held project',
 						);
@@ -289,7 +297,10 @@ export class ProjectService {
 
 			case ProjectStatus.PROPOSED_CLOSED:
 				// Forbid overseer if closed or canceled but allow admin in any case
-				if (!project.overseer || project.overseer.id !== currentUser.sub) {
+				if (
+					!project.overseer &&
+					!this.permissionsService.isProjectOverseer(currentUser, project)
+				) {
 					throw new ForbiddenException(
 						"Only the project's overseer may propose to close a project",
 					);
@@ -300,7 +311,7 @@ export class ProjectService {
 			case ProjectStatus.ON_HOLD:
 			case ProjectStatus.CANCELED:
 			case ProjectStatus.CLOSED:
-				if (currentUser.role !== Role.Admin) {
+				if (!this.permissionsService.isAdmin(currentUser)) {
 					throw new ForbiddenException(
 						'Only an admin may close, cancel or hold a project',
 					);
@@ -318,15 +329,23 @@ export class ProjectService {
 		return this.projectRepo.save(project);
 	}
 
-	// restrict to admin and overseer
 	// TODO: search for logic to extract
 	async updateDates(
 		projectId: string,
 		{ startDate, endDate }: UpdateProjectDatesDto,
+		currentUser: JwtPayload,
 	): Promise<Project> {
 		const project = await this.findOne(projectId);
+
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${projectId} not found.`);
+		}
+
+		if (
+			!this.permissionsService.isAdmin(currentUser) &&
+			!this.permissionsService.isProjectOverseer(currentUser, project)
+		) {
+			throw new UnauthorizedException('Not allowed to update this project');
 		}
 
 		if (!startDate || !endDate) {
@@ -401,7 +420,6 @@ export class ProjectService {
 		return this.projectRepo.save(project);
 	}
 
-	// Restrict to admin
 	// TODO: search for logic to extract
 	async assignDepartment(
 		id: string,
@@ -453,7 +471,6 @@ export class ProjectService {
 		return await this.projectRepo.save(project);
 	}
 
-	// Restrict to admin
 	// TODO: search for logic to extract
 	async assignOverseer(
 		id: string,
@@ -505,16 +522,23 @@ export class ProjectService {
 		return await this.projectRepo.save(project);
 	}
 
-	// Restrict to admin and overseer
 	// TODO: search for logic to extract
 	async assignMembers(
 		id: string,
 		{ memberIds }: UpdateProjectMembersDto,
+		currentUser: JwtPayload,
 	): Promise<Project> {
 		const project = await this.findOne(id);
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
+		}
+
+		if (
+			!this.permissionsService.isAdmin(currentUser) &&
+			!this.permissionsService.isProjectOverseer(currentUser, project)
+		) {
+			throw new UnauthorizedException('Not allowed to update this project');
 		}
 
 		if (!memberIds?.length) {
@@ -558,7 +582,6 @@ export class ProjectService {
 		return await this.projectRepo.save(project);
 	}
 
-	// Restrict to admin
 	async remove(id: string): Promise<void> {
 		const result = await this.projectRepo.delete(id);
 		if (result.affected === 0)

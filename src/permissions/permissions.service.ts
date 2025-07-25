@@ -32,6 +32,10 @@ export class PermissionsService {
 		);
 	}
 
+	hasSomeRole(loggedUser: User, requiredRoles: Role[]): boolean {
+		return requiredRoles.some((role) => loggedUser.role?.includes(role));
+	}
+
 	canViewProject(currentUser: JwtPayload, project: Project): boolean {
 		return (
 			this.isAdmin(currentUser) ||

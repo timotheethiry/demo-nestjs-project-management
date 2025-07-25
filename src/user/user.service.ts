@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+	Injectable,
+	NotFoundException,
+	UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -6,6 +10,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { Department } from 'src/department/entities/department.entity';
+import { JwtPayload } from 'src/shared/types/jwt-payload.interface';
+import { PermissionsService } from 'src/permissions/permissions.service';
 
 @Injectable()
 export class UserService {
@@ -13,6 +19,7 @@ export class UserService {
 		@InjectRepository(User) private userRepo: Repository<User>,
 		@InjectRepository(Department)
 		private departmentRepo: Repository<Department>,
+		private permissionsService: PermissionsService,
 	) {}
 
 	async create(createUserDto: CreateUserDto): Promise<User> {
@@ -48,8 +55,19 @@ export class UserService {
 		return this.userRepo.findBy({ id: In(ids) });
 	}
 
-	async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+	async update(
+		id: string,
+		updateUserDto: UpdateUserDto,
+		currentUser: JwtPayload,
+	): Promise<User> {
 		const user = await this.findOne(id);
+
+		if (
+			!this.permissionsService.isOwner(currentUser, user) &&
+			!this.permissionsService.isAdmin(currentUser)
+		) {
+			throw new UnauthorizedException('Not allowed to update this user.');
+		}
 
 		const { email, firstName, lastName, password } = updateUserDto;
 

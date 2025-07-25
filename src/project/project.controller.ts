@@ -17,12 +17,15 @@ import { UpdateProjectStatusDto } from './dto/update-status.dto';
 import { UpdateProjectDepartmentDto } from './dto/update-department.dto';
 import { UpdateProjectOverseerDto } from './dto/update-overseer.dto';
 import { UpdateProjectMembersDto } from './dto/update-members.dto';
+import { Roles } from 'src/shared/decorators/roles.decorator';
+import { Role } from 'src/shared/role.enum';
 
 @Controller('projects')
 export class ProjectController {
 	constructor(private readonly projectService: ProjectService) {}
 
 	@Post()
+	@Roles(Role.Admin)
 	create(
 		@Body() createProjectDto: CreateProjectDto,
 		@CurrentUser() currentUser: JwtPayload,
@@ -50,8 +53,12 @@ export class ProjectController {
 	}
 
 	@Put(':id/dates')
-	updateDates(@Param('id') id: string, @Body() dto: UpdateProjectDatesDto) {
-		return this.projectService.updateDates(id, dto);
+	updateDates(
+		@Param('id') id: string,
+		@Body() dto: UpdateProjectDatesDto,
+		@CurrentUser() currentUser: JwtPayload,
+	) {
+		return this.projectService.updateDates(id, dto, currentUser);
 	}
 
 	@Put(':id/status')
@@ -64,25 +71,34 @@ export class ProjectController {
 	}
 
 	@Put(':id/department')
+	@Roles(Role.Admin)
 	assignDepartment(
 		@Param('id') id: string,
 		@Body() dto: UpdateProjectDepartmentDto,
 	) {
 		return this.projectService.assignDepartment(id, dto);
 	}
+
 	@Put(':id/overseer')
+	@Roles(Role.Admin)
 	assignOverseer(
 		@Param('id') id: string,
 		@Body() dto: UpdateProjectOverseerDto,
 	) {
 		return this.projectService.assignOverseer(id, dto);
 	}
+
 	@Put(':id/members')
-	assignMembers(@Param('id') id: string, @Body() dto: UpdateProjectMembersDto) {
-		return this.projectService.assignMembers(id, dto);
+	assignMembers(
+		@Param('id') id: string,
+		@Body() dto: UpdateProjectMembersDto,
+		@CurrentUser() currentUser: JwtPayload,
+	) {
+		return this.projectService.assignMembers(id, dto, currentUser);
 	}
 
 	@Delete(':id')
+	@Roles(Role.Admin)
 	remove(@Param('id') id: string) {
 		return this.projectService.remove(id);
 	}

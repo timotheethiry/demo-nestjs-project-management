@@ -10,6 +10,8 @@ import { jwtConstant } from './authentication/constants';
 import { AuthGuard } from './guards/auth.guard';
 import { FailedLoginAttempt } from './login-attempts/failedLoginAttempt.entity';
 import { LoginAttempts } from './login-attempts/login-attempts';
+import { RolesGuard } from './guards/roles.guard';
+import { PermissionsModule } from 'src/permissions/permissions.module';
 
 const loginAttemptsProvider = {
 	provide: 'LOGIN',
@@ -27,12 +29,14 @@ const loginAttemptsProvider = {
 			secret: jwtConstant.secret,
 			signOptions: { expiresIn: '1h' },
 		}),
+		PermissionsModule,
 	],
 	controllers: [AuthenticationController],
 	providers: [
 		AuthenticationService,
 		loginAttemptsProvider,
 		{ provide: APP_GUARD, useClass: AuthGuard },
+		{ provide: APP_GUARD, useClass: RolesGuard },
 	],
 })
 export class AuthModule {}

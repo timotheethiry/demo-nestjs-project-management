@@ -1,5 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Request } from 'express';
+import { PermissionsService } from 'src/permissions/permissions.service';
 import { ROLES_KEY } from 'src/shared/decorators/roles.decorator';
 import { Role } from 'src/shared/role.enum';
 
@@ -7,7 +9,7 @@ import { Role } from 'src/shared/role.enum';
 export class RolesGuard implements CanActivate {
 	constructor(
 		private reflector: Reflector,
-		// private authorizationService: AuthorizationService,
+		private permissionsService: PermissionsService,
 	) {}
 
 	canActivate(context: ExecutionContext): boolean {
@@ -21,7 +23,7 @@ export class RolesGuard implements CanActivate {
 		const { user } = context.switchToHttp().getRequest();
 
 		// Uncomment during Roadpmap Step 5 (Permissions)
-		// return this.authorizationService.hasSomeRole(user, requiredRoles);
+		return this.permissionsService.hasSomeRole(user, requiredRoles);
 		return true;
 	}
 }
