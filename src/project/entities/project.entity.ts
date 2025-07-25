@@ -33,20 +33,20 @@ export class Project {
 		| 'PROPOSED_CLOSED'
 		| 'CLOSED';
 
-	@Column({ nullable: true })
-	objectives: string;
+	@Column({ type: 'varchar', nullable: true })
+	objectives: string | null;
 
-	@Column({ nullable: true })
-	context: string;
+	@Column({ type: 'varchar', nullable: true })
+	context: string | null;
 
-	@Column({ nullable: true })
-	expectedResults: string;
+	@Column({ type: 'varchar', nullable: true })
+	expectedResults: string | null;
 
-	@Column({ nullable: true })
-	startDate: Date;
+	@Column({ type: 'varchar', nullable: true })
+	startDate: Date | null;
 
-	@Column({ nullable: true })
-	endDate: Date;
+	@Column({ type: 'varchar', nullable: true })
+	endDate: Date | null;
 
 	@CreateDateColumn()
 	createdAt: Date;

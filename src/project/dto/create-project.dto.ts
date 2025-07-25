@@ -19,7 +19,7 @@ export class CreateProjectDto {
 	@MinLength(3)
 	@MaxLength(50)
 	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
-		message: 'Forbidden symbols or characters in username',
+		message: 'Forbidden symbols or characters in name',
 	})
 	name: string;
 
@@ -27,7 +27,7 @@ export class CreateProjectDto {
 	@IsString()
 	@MaxLength(3000)
 	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
-		message: 'Forbidden symbols or characters in username',
+		message: 'Forbidden symbols or characters in description',
 	})
 	description: string;
 
@@ -39,13 +39,19 @@ export class CreateProjectDto {
 		'PROPOSED_CLOSED',
 		'CLOSED',
 	])
-	status: string;
+	status:
+		| 'NOT_STARTED'
+		| 'IN_PROGRESS'
+		| 'ON_HOLD'
+		| 'CANCELED'
+		| 'PROPOSED_CLOSED'
+		| 'CLOSED';
 
 	@IsOptional()
 	@IsString()
 	@MaxLength(3000)
 	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
-		message: 'Forbidden symbols or characters in username',
+		message: 'Forbidden symbols or characters in objectives',
 	})
 	objectives?: string;
 
@@ -53,7 +59,7 @@ export class CreateProjectDto {
 	@IsString()
 	@MaxLength(3000)
 	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
-		message: 'Forbidden symbols or characters in username',
+		message: 'Forbidden symbols or characters in context',
 	})
 	context?: string;
 
@@ -61,7 +67,7 @@ export class CreateProjectDto {
 	@IsString()
 	@MaxLength(3000)
 	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
-		message: 'Forbidden symbols or characters in username',
+		message: 'Forbidden symbols or characters in expectedResults',
 	})
 	expectedResults?: string;
 
@@ -73,17 +79,20 @@ export class CreateProjectDto {
 	@IsDateString()
 	endDate?: Date;
 
+	// Decide if removing this field from updateDto to protect updateProject method and define a distinct assignDepartmentDto
+	@IsOptional()
 	@IsUUID()
 	@MaxLength(36)
 	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
-		message: 'Forbidden symbols or characters in username',
+		message: 'Forbidden symbols or characters in departmentId',
 	})
 	departmentId?: string;
 
+	@IsOptional()
 	@IsUUID()
 	@MaxLength(36)
 	@Matches(/^[a-zA-Z0-9À-ÿ _\\/\-.,;!?()'"%€$+*#]*$/, {
-		message: 'Forbidden symbols or characters in username',
+		message: 'Forbidden symbols or characters in overseerId',
 	})
 	overseerId?: string;
 
