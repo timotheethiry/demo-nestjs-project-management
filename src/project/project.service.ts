@@ -13,7 +13,7 @@ import { PermissionsService } from 'src/permissions/permissions.service';
 import { JwtPayload } from 'src/shared/types/jwt-payload.interface';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectContentDto } from './dto/update-content.dto';
 import { UpdateProjectDatesDto } from './dto/update-dates.dto';
@@ -22,7 +22,9 @@ import { UpdateProjectMembersDto } from './dto/update-members.dto';
 import { UpdateProjectOverseerDto } from './dto/update-overseer.dto';
 import { UpdateProjectStatusDto } from './dto/update-status.dto';
 import { Project } from './entities/project.entity';
-import { ProjectStatus } from './types/status.enum';
+import { ProjectStatus } from './types/project-status.enum';
+import { Phase } from './entities/phase.entity';
+import { PhaseStatus } from './types/phase-status.enum';
 
 @Injectable()
 export class ProjectService {
@@ -31,6 +33,7 @@ export class ProjectService {
 		private userService: UserService,
 		private departmentService: DepartmentService,
 		private permissionsService: PermissionsService,
+		private dataSource: DataSource,
 	) {}
 
 	async create(createProjectDto: CreateProjectDto, currentUser: JwtPayload) {
@@ -83,7 +86,7 @@ export class ProjectService {
 	async findOne(id: string): Promise<Project> {
 		const project = await this.projectRepo.findOne({
 			where: { id },
-			relations: ['department', 'overseer', 'members'],
+			relations: ['department', 'overseer', 'members', 'phases', 'createdBy'],
 		});
 		if (!project) throw new NotFoundException(`Project #${id} not found`);
 		return project;
@@ -582,6 +585,67 @@ export class ProjectService {
 		return await this.projectRepo.save(project);
 	}
 
+	async reorderPhases(
+		projectId: string,
+		phaseId: string,
+		newPhaseOrder: number,
+	): Promise<Phase[]> {
+		return await this.dataSource.transaction(async (manager) => {
+			// 1. Charger toutes les phases du projet, ordonnées par `order`
+			const phases = await manager.getRepository(Phase).find({
+				where: { project: { id: projectId } },
+				order: { order: 'ASC' },
+			});
+
+			const totalLength = phases.length;
+
+			if (phases.length === 0) {
+				throw new NotFoundException(`No phases found for project ${projectId}`);
+			}
+
+			if (newPhaseOrder < 1 || newPhaseOrder > phases.length) {
+				throw new BadRequestException(
+					`Invalid target position: ${newPhaseOrder}, number of phases: ${phases.length}`,
+				);
+			}
+
+			// 2. Retrouver la phase à déplacer
+			const indexToMove = phases.findIndex((p) => p.id === phaseId);
+			if (indexToMove === -1) {
+				throw new NotFoundException(
+					`Phase ${phaseId} not found in project ${projectId}`,
+				);
+			}
+
+			const phaseToMove = phases[indexToMove];
+
+			// 3. Retirer la phase de la liste
+			phases.splice(indexToMove, 1);
+
+			// 4. Insérer à la nouvelle position (1-indexé → ajuster pour tableau)
+			const targetIndex = newPhaseOrder - 1;
+
+			phases.splice(targetIndex, 0, phaseToMove);
+
+			// 5. Validation métier : phases terminées doivent rester en tête groupées
+			phases.splice(
+				0,
+				phases.length,
+				...this.enforceCompletedPhasesAreGrouped(phases),
+			);
+
+			// 6. Réassigner les ordres
+			for (let i = 0; i < totalLength; i++) {
+				phases[i].order = i + 1;
+			}
+
+			// 7. Sauvegarde (transactionnelle)
+			await manager.getRepository(Phase).save(phases);
+
+			return phases;
+		});
+	}
+
 	async remove(id: string): Promise<void> {
 		const result = await this.projectRepo.delete(id);
 		if (result.affected === 0)
@@ -613,5 +677,13 @@ export class ProjectService {
 			!!startDate &&
 			!!endDate
 		);
+	}
+
+	// ⚠️ Business rule: project phases must be sorted with completed ones first
+	private enforceCompletedPhasesAreGrouped(phases: Phase[]): Phase[] {
+		const completed = phases.filter((p) => p.status === PhaseStatus.COMPLETED);
+		const others = phases.filter((p) => p.status !== PhaseStatus.COMPLETED);
+
+		return [...completed, ...others];
 	}
 }

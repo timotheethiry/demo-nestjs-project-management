@@ -44,11 +44,15 @@ export class PermissionsService {
 		);
 	}
 
+	canCreatePhase(currentUser: JwtPayload, project: Project): boolean {
+		return (
+			this.isAdmin(currentUser) || this.isProjectOverseer(currentUser, project)
+		);
+	}
+
 	canEditPhase(currentUser: JwtPayload, project: Project): boolean {
 		return (
-			this.isAdmin(currentUser) ||
-			this.isProjectOverseer(currentUser, project) ||
-			this.isProjectMember(currentUser, project)
+			this.isAdmin(currentUser) || this.isProjectOverseer(currentUser, project)
 		);
 	}
 

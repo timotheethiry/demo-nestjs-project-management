@@ -8,9 +8,11 @@ import {
 	JoinTable,
 	ManyToMany,
 	ManyToOne,
+	OneToMany,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm';
+import { Phase } from './phase.entity';
 
 @Entity()
 export class Project {
@@ -69,10 +71,9 @@ export class Project {
 	@JoinTable()
 	members: User[];
 
-	// To be uncommented at roadmap step 6 (Phase implementation)
-	// @OneToMany(() => Phase, (phase) => phase.project, {
-	// 	cascade: true,
-	// 	eager: true,
-	// })
-	// phases: Phase[];
+	@OneToMany(() => Phase, (phase) => phase.project, {
+		cascade: true,
+		eager: true,
+	})
+	phases: Phase[];
 }
