@@ -21,10 +21,10 @@ import { UpdateProjectDepartmentDto } from './dto/update-department.dto';
 import { UpdateProjectMembersDto } from './dto/update-members.dto';
 import { UpdateProjectOverseerDto } from './dto/update-overseer.dto';
 import { UpdateProjectStatusDto } from './dto/update-status.dto';
-import { Project } from './entities/project.entity';
-import { ProjectStatus } from './types/project-status.enum';
-import { Phase } from './entities/phase.entity';
-import { PhaseStatus } from './types/phase-status.enum';
+import { Project } from './project.entity';
+import { ProjectStatus } from '../types/project-status.enum';
+import { PhaseStatus } from '../types/phase-status.enum';
+import { Phase } from '../phase/phase.entity';
 
 @Injectable()
 export class ProjectService {

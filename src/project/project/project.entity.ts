@@ -12,7 +12,7 @@ import {
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm';
-import { Phase } from './phase.entity';
+import { Phase } from '../phase/phase.entity';
 
 @Entity()
 export class Project {

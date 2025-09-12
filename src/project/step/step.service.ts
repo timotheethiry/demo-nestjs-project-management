@@ -1,6 +1,5 @@
 import { PermissionsService } from 'src/permissions/permissions.service';
 import { Repository } from 'typeorm';
-import { Phase } from './entities/phase.entity';
 import {
 	Injectable,
 	NotFoundException,
@@ -8,16 +7,17 @@ import {
 	ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProjectStatus } from './types/project-status.enum';
-import { PhaseStatus } from './types/phase-status.enum';
+import { ProjectStatus } from '../types/project-status.enum';
+import { PhaseStatus } from '../types/phase-status.enum';
 import { JwtPayload } from 'src/shared/types/jwt-payload.interface';
-import { Step } from './entities/step.entity';
+import { Step } from './step.entity';
 import { CreateStepDto } from './dto/create-step.dto';
-import { PhaseService } from './phase.service';
+import { PhaseService } from '../phase/phase.service';
 import { UpdateStepNameDto } from './dto/update-step-name.dto';
-import { StepStatus } from './types/step-status.enum';
+import { StepStatus } from '../types/step-status.enum';
 import { UpdateStepStatusDto } from './dto/update-step-status.dto';
 import { UpdateStepOrderDto } from './dto/update-step-order.dto';
+import { Phase } from '../phase/phase.entity';
 
 @Injectable()
 export class StepService {

@@ -7,8 +7,8 @@ import {
 	UpdateDateColumn,
 	OneToMany,
 } from 'typeorm';
-import { Phase } from './phase.entity';
-import { Task } from './task.entity';
+import { Task } from '../entities/task.entity';
+import { Phase } from '../phase/phase.entity';
 
 @Entity()
 export class Step {

@@ -1,5 +1,5 @@
 import { Department } from 'src/department/entities/department.entity';
-import { Project } from 'src/project/entities/project.entity';
+import { Project } from 'src/project/project/project.entity';
 import {
 	Column,
 	Entity,

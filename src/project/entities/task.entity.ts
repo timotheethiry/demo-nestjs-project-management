@@ -6,7 +6,7 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 } from 'typeorm';
-import { Step } from './step.entity';
+import { Step } from '../step/step.entity';
 
 @Entity()
 export class Task {

@@ -6,8 +6,8 @@ import {
 	OneToMany,
 	Index,
 } from 'typeorm';
-import { Project } from './project.entity';
-import { Step } from './step.entity';
+import { Project } from '../project/project.entity';
+import { Step } from '../step/step.entity';
 
 @Entity()
 export class Phase {

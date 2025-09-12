@@ -3,7 +3,6 @@ import { DataSource, Repository } from 'typeorm';
 import { CreatePhaseDto } from './dto/create-phase.dto';
 import { UpdatePhaseNameDto } from './dto/update-phase-name.dto';
 import { UpdatePhaseStatusDto } from './dto/update-phase-status.dto';
-import { Phase } from './entities/phase.entity';
 import {
 	Injectable,
 	NotFoundException,
@@ -11,22 +10,20 @@ import {
 	ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProjectStatus } from './types/project-status.enum';
-import { PhaseStatus } from './types/phase-status.enum';
+import { ProjectStatus } from '../types/project-status.enum';
+import { PhaseStatus } from '../types/phase-status.enum';
 import { UpdatePhaseOrderDto } from './dto/update-phase-order.dto';
-import { ProjectService } from './project.service';
+import { ProjectService } from '../project/project.service';
 import { JwtPayload } from 'src/shared/types/jwt-payload.interface';
-import { Step } from './entities/step.entity';
+import { Step } from '../step/step.entity';
+import { Phase } from './phase.entity';
 
 @Injectable()
 export class PhaseService {
 	constructor(
 		@InjectRepository(Phase) private phaseRepo: Repository<Phase>,
-		// @InjectRepository(Project)
-		// private readonly projectRepo: Repository<Project>,
 		private permissionsService: PermissionsService,
 		private projectService: ProjectService,
-		// private stepService: StepService,
 		private dataSource: DataSource,
 	) {}
 

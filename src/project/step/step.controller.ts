@@ -1,21 +1,21 @@
 import {
-	Controller,
-	Post,
-	Get,
-	Put,
-	Delete,
 	Body,
+	Controller,
+	Delete,
+	Get,
 	Param,
 	ParseUUIDPipe,
+	Post,
+	Put,
 } from '@nestjs/common';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { JwtPayload } from 'src/shared/types/jwt-payload.interface';
-import { StepService } from './step.service';
 import { CreateStepDto } from './dto/create-step.dto';
-import { Step } from './entities/step.entity';
-import { UpdateStepStatusDto } from './dto/update-step-status.dto';
 import { UpdateStepNameDto } from './dto/update-step-name.dto';
 import { UpdateStepOrderDto } from './dto/update-step-order.dto';
+import { UpdateStepStatusDto } from './dto/update-step-status.dto';
+import { Step } from './step.entity';
+import { StepService } from './step.service';
 
 @Controller('steps')
 export class StepController {

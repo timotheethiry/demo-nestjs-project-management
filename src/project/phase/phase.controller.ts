@@ -1,28 +1,26 @@
 import {
-	Controller,
-	Post,
-	Get,
-	Put,
-	Delete,
 	Body,
+	Controller,
+	Delete,
+	Get,
 	Param,
 	ParseUUIDPipe,
+	Post,
+	Put,
 } from '@nestjs/common';
-import { PhaseService } from './phase.service';
-import { CreatePhaseDto } from './dto/create-phase.dto';
-import { UpdatePhaseNameDto } from './dto/update-phase-name.dto';
-// import { UpdatePhaseStepsDto } from './dto/update-phase-steps.dto';
-import { Phase } from './entities/phase.entity';
-import { UpdatePhaseStatusDto } from './dto/update-phase-status.dto';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { JwtPayload } from 'src/shared/types/jwt-payload.interface';
+import { CreatePhaseDto } from './dto/create-phase.dto';
+import { UpdatePhaseNameDto } from './dto/update-phase-name.dto';
 import { UpdatePhaseOrderDto } from './dto/update-phase-order.dto';
+import { UpdatePhaseStatusDto } from './dto/update-phase-status.dto';
+import { PhaseService } from './phase.service';
+import { Phase } from './phase.entity';
 
 @Controller('phases')
 export class PhaseController {
 	constructor(private readonly phaseService: PhaseService) {}
 
-	//   Admin or overseer
 	@Post()
 	create(
 		@Body() createPhaseDto: CreatePhaseDto,
@@ -43,7 +41,6 @@ export class PhaseController {
 		return this.phaseService.findOne(id);
 	}
 
-	//   Admin or overseer
 	@Put(':id/name')
 	updateName(
 		@Param('id', new ParseUUIDPipe()) id: string,
@@ -53,7 +50,6 @@ export class PhaseController {
 		return this.phaseService.updateName(id, dto, currentUser);
 	}
 
-	//   Admin or overseer
 	@Put(':id/status')
 	updateStatus(
 		@Param('id', new ParseUUIDPipe()) id: string,
@@ -72,7 +68,6 @@ export class PhaseController {
 		return this.phaseService.updateOrder(id, dto, currentUser);
 	}
 
-	//   Admin or overseer
 	@Delete(':id')
 	remove(
 		@Param('id', new ParseUUIDPipe()) id: string,

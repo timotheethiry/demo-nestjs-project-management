@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Project } from 'src/project/entities/project.entity';
+import { Project } from 'src/project/project/project.entity';
 import { Role } from 'src/shared/role.enum';
 import { JwtPayload } from 'src/shared/types/jwt-payload.interface';
 import { User } from 'src/user/entities/user.entity';

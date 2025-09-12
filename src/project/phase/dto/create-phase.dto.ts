@@ -1,5 +1,4 @@
 import {
-	IsEnum,
 	IsNotEmpty,
 	IsString,
 	IsUUID,
@@ -7,7 +6,6 @@ import {
 	MaxLength,
 	MinLength,
 } from 'class-validator';
-import { PhaseStatus } from 'src/project/types/phase-status.enum';
 
 export class CreatePhaseDto {
 	@IsNotEmpty()
@@ -25,7 +23,4 @@ export class CreatePhaseDto {
 		message: 'Forbidden symbols or characters in overseerId',
 	})
 	projectId: string;
-
-	// @IsEnum(PhaseStatus)
-	// status: PhaseStatus;
 }
