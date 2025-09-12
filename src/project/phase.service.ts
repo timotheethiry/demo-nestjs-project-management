@@ -1,10 +1,9 @@
 import { PermissionsService } from 'src/permissions/permissions.service';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreatePhaseDto } from './dto/create-phase.dto';
 import { UpdatePhaseNameDto } from './dto/update-phase-name.dto';
 import { UpdatePhaseStatusDto } from './dto/update-phase-status.dto';
 import { Phase } from './entities/phase.entity';
-import { Project } from './entities/project.entity';
 import {
 	Injectable,
 	NotFoundException,
@@ -17,18 +16,18 @@ import { PhaseStatus } from './types/phase-status.enum';
 import { UpdatePhaseOrderDto } from './dto/update-phase-order.dto';
 import { ProjectService } from './project.service';
 import { JwtPayload } from 'src/shared/types/jwt-payload.interface';
-// import { Step } from './entities/step.entity';
+import { Step } from './entities/step.entity';
 
 @Injectable()
 export class PhaseService {
 	constructor(
 		@InjectRepository(Phase) private phaseRepo: Repository<Phase>,
-		@InjectRepository(Project)
-		private readonly projectRepo: Repository<Project>,
-		// @InjectRepository(Step)
-		// private readonly stepRepo: Repository<Step>,
+		// @InjectRepository(Project)
+		// private readonly projectRepo: Repository<Project>,
 		private permissionsService: PermissionsService,
 		private projectService: ProjectService,
+		// private stepService: StepService,
+		private dataSource: DataSource,
 	) {}
 
 	async create(dto: CreatePhaseDto, currentUser: JwtPayload): Promise<Phase> {
@@ -84,7 +83,13 @@ export class PhaseService {
 	async findOne(id: string): Promise<Phase> {
 		const phase = await this.phaseRepo.findOne({
 			where: { id },
-			relations: ['project', 'steps'],
+			relations: {
+				project: {
+					overseer: true,
+					members: true,
+				},
+				steps: true,
+			},
 		});
 
 		if (!phase) throw new NotFoundException('Phase not found');
@@ -157,12 +162,13 @@ export class PhaseService {
 				project: {
 					overseer: true,
 				},
+				steps: true,
 			},
 		});
 
 		if (!phase) throw new NotFoundException('Phase not found');
 
-		const { project } = phase;
+		const { project, steps } = phase;
 
 		if (!this.permissionsService.canEditPhase(currentUser, project))
 			throw new ForbiddenException(
@@ -198,18 +204,22 @@ export class PhaseService {
 		}
 
 		// Vérifier cohérence avec les steps
-		// const steps = await this.stepRepo.find({ where: { phase: { id: phase.id } } });
+		// const steps = await this.stepService.findAllByPhase(id);
 
-		// if (newStatus === PhaseStatus.IN_PROGRESS && steps.length === 0) {
-		//   throw new BadRequestException('Cannot start phase without steps');
-		// }
+		if (newStatus === PhaseStatus.IN_PROGRESS && steps.length === 0) {
+			throw new BadRequestException('Cannot start a phase without steps');
+		}
 
-		// if (newStatus === PhaseStatus.COMPLETED) {
-		//   const allStepsCompleted = steps.every((step) => step.status === 'COMPLETED');
-		//   if (!allStepsCompleted) {
-		//     throw new BadRequestException('Cannot complete phase while steps are not all completed');
-		//   }
-		// }
+		if (newStatus === PhaseStatus.COMPLETED) {
+			const allStepsCompleted = steps.every(
+				(step) => step.status === 'COMPLETED',
+			);
+			if (!allStepsCompleted) {
+				throw new BadRequestException(
+					'Cannot complete a phase while steps are not all completed',
+				);
+			}
+		}
 
 		phase.status = newStatus;
 		return await this.phaseRepo.save(phase);
@@ -308,5 +318,59 @@ export class PhaseService {
 		}
 
 		await this.phaseRepo.remove(phase);
+	}
+
+	async reorderSteps(
+		phaseId: string,
+		stepId: string,
+		newStepOrder: number,
+	): Promise<Step[]> {
+		return await this.dataSource.transaction(async (manager) => {
+			// 1. Charger toutes les étapes du projet, ordonnées par `order`
+			const steps = await manager.getRepository(Step).find({
+				where: { phase: { id: phaseId } },
+				order: { order: 'ASC' },
+			});
+
+			const totalLength = steps.length;
+
+			if (steps.length === 0) {
+				throw new NotFoundException(`No step found for phase ${phaseId}`);
+			}
+
+			if (newStepOrder < 1 || newStepOrder > steps.length) {
+				throw new BadRequestException(
+					`Invalid target position: ${newStepOrder}, number of steps: ${steps.length}`,
+				);
+			}
+
+			// 2. Retrouver l'étape à déplacer
+			const indexToMove = steps.findIndex((p) => p.id === stepId);
+			if (indexToMove === -1) {
+				throw new NotFoundException(
+					`Step ${stepId} not found in phase ${phaseId}`,
+				);
+			}
+
+			const stepToMove = steps[indexToMove];
+
+			// 3. Retirer l'étape de la liste
+			steps.splice(indexToMove, 1);
+
+			// 4. Insérer à la nouvelle position (1-indexé → ajuster pour tableau)
+			const targetIndex = newStepOrder - 1;
+
+			steps.splice(targetIndex, 0, stepToMove);
+
+			// 5. Réassigner les ordres
+			for (let i = 0; i < totalLength; i++) {
+				steps[i].order = i + 1;
+			}
+
+			// 7. Sauvegarde (transactionnelle)
+			await manager.getRepository(Step).save(steps);
+
+			return steps;
+		});
 	}
 }

@@ -62,6 +62,38 @@ export class PermissionsService {
 		);
 	}
 
+	canCreateStep(currentUser: JwtPayload, project: Project): boolean {
+		return (
+			this.isAdmin(currentUser) ||
+			this.isProjectOverseer(currentUser, project) ||
+			this.isProjectMember(currentUser, project)
+		);
+	}
+
+	canReadStep(currentUser: JwtPayload, project: Project): boolean {
+		return (
+			this.isAdmin(currentUser) ||
+			this.isProjectOverseer(currentUser, project) ||
+			this.isProjectMember(currentUser, project)
+		);
+	}
+
+	canEditStep(currentUser: JwtPayload, project: Project): boolean {
+		return (
+			this.isAdmin(currentUser) ||
+			this.isProjectOverseer(currentUser, project) ||
+			this.isProjectMember(currentUser, project)
+		);
+	}
+
+	canDeleteStep(currentUser: JwtPayload, project: Project): boolean {
+		return (
+			this.isAdmin(currentUser) ||
+			this.isProjectOverseer(currentUser, project) ||
+			this.isProjectMember(currentUser, project)
+		);
+	}
+
 	canEditTask(currentUser: JwtPayload, project: Project): boolean {
 		return (
 			this.isAdmin(currentUser) ||

@@ -7,7 +7,7 @@ import {
 	Index,
 } from 'typeorm';
 import { Project } from './project.entity';
-// import { Step } from './step.entity';
+import { Step } from './step.entity';
 
 @Entity()
 export class Phase {
@@ -29,6 +29,6 @@ export class Phase {
 	})
 	project: Project;
 
-	//   @OneToMany(() => Step, (step) => step.phase, { cascade: true })
-	//   steps: Step[];
+	@OneToMany(() => Step, (step) => step.phase, { cascade: true })
+	steps: Step[];
 }

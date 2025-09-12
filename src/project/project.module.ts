@@ -9,15 +9,19 @@ import { PermissionsModule } from 'src/permissions/permissions.module';
 import { PhaseService } from './phase.service';
 import { PhaseController } from './phase.controller';
 import { Phase } from './entities/phase.entity';
+import { Task } from './entities/task.entity';
+import { Step } from './entities/step.entity';
+import { StepService } from './step.service';
+import { StepController } from './step.controller';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([Project, Phase]),
+		TypeOrmModule.forFeature([Project, Phase, Step, Task]),
 		UserModule,
 		DepartmentModule,
 		PermissionsModule,
 	],
-	controllers: [ProjectController, PhaseController],
-	providers: [ProjectService, PhaseService],
+	controllers: [ProjectController, PhaseController, StepController],
+	providers: [ProjectService, PhaseService, StepService],
 })
 export class ProjectModule {}
