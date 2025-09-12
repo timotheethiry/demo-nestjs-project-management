@@ -22,8 +22,6 @@ export class RolesGuard implements CanActivate {
 
 		const { user } = context.switchToHttp().getRequest();
 
-		// Uncomment during Roadpmap Step 5 (Permissions)
 		return this.permissionsService.hasSomeRole(user, requiredRoles);
-		return true;
 	}
 }
