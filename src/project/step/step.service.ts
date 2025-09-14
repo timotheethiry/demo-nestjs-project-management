@@ -30,7 +30,7 @@ export class StepService {
 	) {}
 
 	async create(dto: CreateStepDto, currentUser: JwtPayload): Promise<Step> {
-		const phase = await this.phaseService.findOne(dto.phaseId);
+		const phase = await this.phaseService.findOne(dto.phaseId, currentUser);
 
 		if (!phase) throw new NotFoundException('Phase not found');
 
@@ -74,10 +74,11 @@ export class StepService {
 	}
 
 	async findAllByPhase(id: string, currentUser: JwtPayload): Promise<Step[]> {
-		const phase = await this.phaseService.findOne(id);
+		const phase = await this.phaseService.findOne(id, currentUser);
 
 		if (!phase) throw new NotFoundException('Phase not found');
 
+		// redundance ? the same permission is checked in phaseService.findOne
 		if (!this.permissionsService.canReadStep(currentUser, phase.project))
 			throw new ForbiddenException(
 				'Only admin, project overseer or project member may read a step',
@@ -86,13 +87,17 @@ export class StepService {
 		return this.stepRepo.find({
 			where: { phase: { id } },
 			order: { order: 'ASC' },
+			// relations: ['tasks']
 		});
 	}
 
 	async findOne(id: string, currentUser: JwtPayload): Promise<Step> {
 		const step = await this.stepRepo.findOne({
 			where: { id },
-			relations: { phase: { project: { overseer: true, members: true } } },
+			relations: {
+				phase: { project: { overseer: true, members: true } },
+				// tasks:true
+			},
 		});
 
 		if (!step) throw new NotFoundException('Step not found');

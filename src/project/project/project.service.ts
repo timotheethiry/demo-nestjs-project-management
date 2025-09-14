@@ -4,7 +4,6 @@ import {
 	ForbiddenException,
 	Injectable,
 	NotFoundException,
-	UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DepartmentService } from 'src/department/department.service';
@@ -79,19 +78,30 @@ export class ProjectService {
 		return this.projectRepo.save(newProject);
 	}
 
-	findAll(): Promise<Project[]> {
-		return this.projectRepo.find();
+	findAll(currentUser: JwtPayload): Promise<Project[]> {
+		if (this.permissionsService.isAdmin(currentUser)) {
+			return this.projectRepo.find();
+		} else {
+			console.log('projects masked for non granted viewing permission');
+			return this.projectRepo.find();
+		}
 	}
 
-	async findOne(id: string): Promise<Project> {
+	async findOne(id: string, currentUser: JwtPayload): Promise<Project> {
 		const project = await this.projectRepo.findOne({
 			where: { id },
 			relations: ['department', 'overseer', 'members', 'phases', 'createdBy'],
 		});
 		if (!project) throw new NotFoundException(`Project #${id} not found`);
+
+		if (!this.permissionsService.canViewProject(currentUser, project)) {
+			throw new ForbiddenException('Not allowed to view this project');
+		}
+
 		return project;
 	}
 
+	// to clean and refacto
 	async updateContent(
 		id: string,
 		{
@@ -103,17 +113,14 @@ export class ProjectService {
 		}: UpdateProjectContentDto,
 		currentUser: JwtPayload,
 	): Promise<Project> {
-		const project = await this.findOne(id);
+		const project = await this.findOne(id, currentUser);
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
 		}
 
-		if (
-			!this.permissionsService.isAdmin(currentUser) &&
-			!this.permissionsService.isProjectOverseer(currentUser, project)
-		) {
-			throw new UnauthorizedException('Not allowed to update this project');
+		if (!this.permissionsService.canEditProject(currentUser, project)) {
+			throw new ForbiddenException('Not allowed to update this project');
 		}
 
 		const current = {
@@ -151,7 +158,7 @@ export class ProjectService {
 				}
 				if (objectives || expectedResults) {
 					throw new ForbiddenException(
-						`Objectives and expected results cannot be modified once project is started.`,
+						`Objectives and expected results cannot be modified while project is in progress.`,
 					);
 				}
 				break;
@@ -264,7 +271,16 @@ export class ProjectService {
 		updateProjectDto: UpdateProjectStatusDto,
 		currentUser: JwtPayload,
 	) {
-		const project = await this.findOne(id);
+		const project = await this.findOne(id, currentUser);
+
+		if (!project) {
+			throw new NotFoundException(`Project with ID ${id} not found.`);
+		}
+
+		if (!this.permissionsService.canEditProject(currentUser, project))
+			throw new ForbiddenException(
+				'Only admins or project overseer may edit a project',
+			);
 
 		if (!updateProjectDto.status) return project;
 
@@ -287,11 +303,12 @@ export class ProjectService {
 							'Only an admin may reopen a canceled or held project',
 						);
 					}
+					// this assignment should not be here as the eligible check is not yet passed
 					project.status = updateProjectDto.status;
 				}
 
 				if (!this.isEligibleForInProgress(project)) {
-					throw new ForbiddenException(
+					throw new BadRequestException(
 						`A project must be entirely filled to be marked as in progress`,
 					);
 				}
@@ -338,17 +355,14 @@ export class ProjectService {
 		{ startDate, endDate }: UpdateProjectDatesDto,
 		currentUser: JwtPayload,
 	): Promise<Project> {
-		const project = await this.findOne(projectId);
+		const project = await this.findOne(projectId, currentUser);
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${projectId} not found.`);
 		}
 
-		if (
-			!this.permissionsService.isAdmin(currentUser) &&
-			!this.permissionsService.isProjectOverseer(currentUser, project)
-		) {
-			throw new UnauthorizedException('Not allowed to update this project');
+		if (!this.permissionsService.canEditProject(currentUser, project)) {
+			throw new ForbiddenException('Not allowed to update this project');
 		}
 
 		if (!startDate || !endDate) {
@@ -427,8 +441,9 @@ export class ProjectService {
 	async assignDepartment(
 		id: string,
 		{ departmentId }: UpdateProjectDepartmentDto,
+		currentUser: JwtPayload,
 	): Promise<Project> {
-		const project = await this.findOne(id);
+		const project = await this.findOne(id, currentUser);
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
@@ -478,8 +493,9 @@ export class ProjectService {
 	async assignOverseer(
 		id: string,
 		{ overseerId }: UpdateProjectOverseerDto,
+		currentUser: JwtPayload,
 	): Promise<Project> {
-		const project = await this.findOne(id);
+		const project = await this.findOne(id, currentUser);
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
@@ -531,17 +547,14 @@ export class ProjectService {
 		{ memberIds }: UpdateProjectMembersDto,
 		currentUser: JwtPayload,
 	): Promise<Project> {
-		const project = await this.findOne(id);
+		const project = await this.findOne(id, currentUser);
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
 		}
 
-		if (
-			!this.permissionsService.isAdmin(currentUser) &&
-			!this.permissionsService.isProjectOverseer(currentUser, project)
-		) {
-			throw new UnauthorizedException('Not allowed to update this project');
+		if (!this.permissionsService.canEditProject(currentUser, project)) {
+			throw new ForbiddenException('Not allowed to update this project');
 		}
 
 		if (!memberIds?.length) {

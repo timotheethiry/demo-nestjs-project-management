@@ -34,13 +34,13 @@ export class ProjectController {
 	}
 
 	@Get()
-	findAll() {
-		return this.projectService.findAll();
+	findAll(@CurrentUser() currentUser: JwtPayload) {
+		return this.projectService.findAll(currentUser);
 	}
 
 	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.projectService.findOne(id);
+	findOne(@Param('id') id: string, @CurrentUser() currentUser: JwtPayload) {
+		return this.projectService.findOne(id, currentUser);
 	}
 
 	@Put(':id/content')
@@ -75,8 +75,9 @@ export class ProjectController {
 	assignDepartment(
 		@Param('id') id: string,
 		@Body() dto: UpdateProjectDepartmentDto,
+		@CurrentUser() currentUser: JwtPayload,
 	) {
-		return this.projectService.assignDepartment(id, dto);
+		return this.projectService.assignDepartment(id, dto, currentUser);
 	}
 
 	@Put(':id/overseer')
@@ -84,8 +85,9 @@ export class ProjectController {
 	assignOverseer(
 		@Param('id') id: string,
 		@Body() dto: UpdateProjectOverseerDto,
+		@CurrentUser() currentUser: JwtPayload,
 	) {
-		return this.projectService.assignOverseer(id, dto);
+		return this.projectService.assignOverseer(id, dto, currentUser);
 	}
 
 	@Put(':id/members')

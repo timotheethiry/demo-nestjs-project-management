@@ -32,13 +32,17 @@ export class PhaseController {
 	@Get('findAllByProject/:projectId')
 	findAllByProject(
 		@Param('projectId', new ParseUUIDPipe()) projectId: string,
+		@CurrentUser() currentUser: JwtPayload,
 	): Promise<Phase[]> {
-		return this.phaseService.findAllByProject(projectId);
+		return this.phaseService.findAllByProject(projectId, currentUser);
 	}
 
 	@Get(':id')
-	findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<Phase> {
-		return this.phaseService.findOne(id);
+	findOne(
+		@Param('id', new ParseUUIDPipe()) id: string,
+		@CurrentUser() currentUser: JwtPayload,
+	): Promise<Phase> {
+		return this.phaseService.findOne(id, currentUser);
 	}
 
 	@Put(':id/name')

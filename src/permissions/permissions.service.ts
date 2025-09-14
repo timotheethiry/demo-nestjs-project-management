@@ -44,6 +44,36 @@ export class PermissionsService {
 		);
 	}
 
+	canEditProject(currentUser: JwtPayload, project: Project): boolean {
+		return (
+			this.isAdmin(currentUser) || this.isProjectOverseer(currentUser, project)
+		);
+	}
+
+	canDeleteProject(currentUser: JwtPayload, project: Project): boolean {
+		return (
+			this.isAdmin(currentUser) || this.isProjectOverseer(currentUser, project)
+		);
+	}
+
+	canProposeProjectClosure(currentUser: JwtPayload, project: Project): boolean {
+		return this.isProjectOverseer(currentUser, project);
+	}
+
+	canCloseProject(currentUser: JwtPayload): boolean {
+		return this.isAdmin(currentUser);
+	}
+
+	canAssignOverseer(currentUser: JwtPayload): boolean {
+		return this.isAdmin(currentUser);
+	}
+
+	canAssignMember(currentUser: JwtPayload, project: Project): boolean {
+		return (
+			this.isAdmin(currentUser) || this.isProjectOverseer(currentUser, project)
+		);
+	}
+
 	canCreatePhase(currentUser: JwtPayload, project: Project): boolean {
 		return (
 			this.isAdmin(currentUser) || this.isProjectOverseer(currentUser, project)
@@ -103,24 +133,6 @@ export class PermissionsService {
 	}
 
 	canDeleteTask(currentUser: JwtPayload, project: Project): boolean {
-		return (
-			this.isAdmin(currentUser) || this.isProjectOverseer(currentUser, project)
-		);
-	}
-
-	canProposeProjectClosure(currentUser: JwtPayload, project: Project): boolean {
-		return this.isProjectOverseer(currentUser, project);
-	}
-
-	canCloseProject(currentUser: JwtPayload): boolean {
-		return this.isAdmin(currentUser);
-	}
-
-	canAssignOverseer(currentUser: JwtPayload): boolean {
-		return this.isAdmin(currentUser);
-	}
-
-	canAssignMember(currentUser: JwtPayload, project: Project): boolean {
 		return (
 			this.isAdmin(currentUser) || this.isProjectOverseer(currentUser, project)
 		);

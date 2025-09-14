@@ -28,7 +28,10 @@ export class PhaseService {
 	) {}
 
 	async create(dto: CreatePhaseDto, currentUser: JwtPayload): Promise<Phase> {
-		const project = await this.projectService.findOne(dto.projectId);
+		const project = await this.projectService.findOne(
+			dto.projectId,
+			currentUser,
+		);
 
 		if (!project) throw new NotFoundException('Project not found');
 
@@ -65,19 +68,28 @@ export class PhaseService {
 		return await this.phaseRepo.save(phase);
 	}
 
-	async findAllByProject(projectId: string): Promise<Phase[]> {
-		const project = await this.projectService.findOne(projectId);
+	async findAllByProject(
+		projectId: string,
+		currentUser: JwtPayload,
+	): Promise<Phase[]> {
+		const project = await this.projectService.findOne(projectId, currentUser);
 
 		if (!project) throw new NotFoundException('Project not found');
 
+		if (!this.permissionsService.canReadStep(currentUser, project))
+			throw new ForbiddenException(
+				'Only admin, project overseer or project member may read a phase',
+			);
+
+		// redundance ? phases are already fetched by the relation in projectService.findOne
 		return this.phaseRepo.find({
 			where: { project: { id: projectId } },
 			order: { order: 'ASC' },
-			// relations: ['steps'],
+			relations: ['steps'],
 		});
 	}
 
-	async findOne(id: string): Promise<Phase> {
+	async findOne(id: string, currentUser: JwtPayload): Promise<Phase> {
 		const phase = await this.phaseRepo.findOne({
 			where: { id },
 			relations: {
@@ -90,6 +102,13 @@ export class PhaseService {
 		});
 
 		if (!phase) throw new NotFoundException('Phase not found');
+
+		const { project } = phase;
+
+		if (!this.permissionsService.canReadStep(currentUser, project))
+			throw new ForbiddenException(
+				'Only admin, project overseer or project member may read a phase',
+			);
 		return phase;
 	}
 
@@ -153,6 +172,7 @@ export class PhaseService {
 		dto: UpdatePhaseStatusDto,
 		currentUser: JwtPayload,
 	): Promise<Phase> {
+		// there is already a phaseService.findOne
 		const phase = await this.phaseRepo.findOne({
 			where: { id },
 			relations: {
@@ -201,6 +221,8 @@ export class PhaseService {
 		}
 
 		// Vérifier cohérence avec les steps
+
+		// redundance ? steps are already fetched by the relation in phase findOne
 		// const steps = await this.stepService.findAllByPhase(id);
 
 		if (newStatus === PhaseStatus.IN_PROGRESS && steps.length === 0) {

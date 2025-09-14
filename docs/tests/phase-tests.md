@@ -12,14 +12,14 @@
 
 🔹 2. findAllByProject (GET phases/findAllByProject/:id)
 • [x] Récupérer toutes les phases d’un projet valide → ✅ 200, triées par order ASC,
-• [] avec steps inclus
+• [x] avec steps inclus
 • [x] Projet inexistant → ❌ 404
-User sans permission --> ❌ 403
+• [x] User sans permission --> ❌ 403
 
-findOne
+🔹 findOne
 Récupérer la phase -->✅ 200
-User sans permission --> ❌ 403
-Phase non existante --> ❌ 404
+• [x] User sans permission --> ❌ 403
+• [x] Phase non existante --> ❌ 404
 
 🔹 3. updateName (PATCH /phases/:id/name)
 • [x] Modifier le nom d’une phase valide → ✅ 200
@@ -44,7 +44,9 @@ Phase non existante --> ❌ 404
 • [x] Projet avec status CANCELED → ❌ 400
 • [x] Projet avec status PROPOSED_CLOSED → ❌ 400
 • [x] Phase inexistante → ❌ 404
-• [x] Utilisateur sans permission → ❌ 403 - [] finir phase sans steps --> 403 - [] finir phase avec steps pas toutes complétées
+• [x] Utilisateur sans permission → ❌ 403
+• [x] finir phase sans steps --> ❌ 403
+• [x] finir phase avec steps pas toutes complétées --> ❌ 403
 
 🔹 5. updateOrder (PATCH /phases/:id/order)
 • [x] Modifier l’ordre d’une phase valide → ✅ 200 (via projectService.reorderPhases)
@@ -59,7 +61,7 @@ Phase non existante --> ❌ 404
 🔹 6. remove (DELETE /phases/:id)
 • [x] Supprimer une phase existante avec projet NOT_STARTED → ✅
 • [x] Supprimer une phase existante avec projet IN_PROGRESS ou ON_HOLD si phase NOT_STARTED → ✅
-✅ Vérifier que l’ordre des autres Phases est recalculé si nécessaire
+[ ] Vérifier que l’ordre des autres Phases est recalculé si nécessaire --> ✅
 • [x] Supprimer une phase déjà commencée (status ≠ NOT_STARTED) dans projet actif → ❌ 403
 • [x] Supprimer une phase dans projet CANCELED → ❌ 403
 • [x] Supprimer une phase dans projet PROPOSED_CLOSED → ❌ 403
