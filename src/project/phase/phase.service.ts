@@ -76,17 +76,10 @@ export class PhaseService {
 
 		if (!project) throw new NotFoundException('Project not found');
 
-		if (!this.permissionsService.canReadStep(currentUser, project))
-			throw new ForbiddenException(
-				'Only admin, project overseer or project member may read a phase',
-			);
+		// Phase acces permission: verified by ProjectService.findOne (aggregate root)
+		// No extra verification needed here
 
-		// redundance ? phases are already fetched by the relation in projectService.findOne
-		return this.phaseRepo.find({
-			where: { project: { id: projectId } },
-			order: { order: 'ASC' },
-			relations: ['steps'],
-		});
+		return project.phases;
 	}
 
 	async findOne(id: string, currentUser: JwtPayload): Promise<Phase> {
@@ -105,10 +98,11 @@ export class PhaseService {
 
 		const { project } = phase;
 
-		if (!this.permissionsService.canReadStep(currentUser, project))
+		if (!this.permissionsService.canViewProject(currentUser, project))
 			throw new ForbiddenException(
-				'Only admin, project overseer or project member may read a phase',
+				'Only admin, project overseer or project member may view a project',
 			);
+
 		return phase;
 	}
 
@@ -129,6 +123,11 @@ export class PhaseService {
 		if (!phase) throw new NotFoundException('Phase not found');
 
 		const { project } = phase;
+
+		if (!this.permissionsService.canViewProject(currentUser, project))
+			throw new ForbiddenException(
+				'Only admin, project overseer or project member may view a project',
+			);
 
 		if (!this.permissionsService.canEditPhase(currentUser, project))
 			throw new ForbiddenException(
@@ -172,7 +171,6 @@ export class PhaseService {
 		dto: UpdatePhaseStatusDto,
 		currentUser: JwtPayload,
 	): Promise<Phase> {
-		// there is already a phaseService.findOne
 		const phase = await this.phaseRepo.findOne({
 			where: { id },
 			relations: {
@@ -186,6 +184,11 @@ export class PhaseService {
 		if (!phase) throw new NotFoundException('Phase not found');
 
 		const { project, steps } = phase;
+
+		if (!this.permissionsService.canViewProject(currentUser, project))
+			throw new ForbiddenException(
+				'Only admin, project overseer or project member may view a project',
+			);
 
 		if (!this.permissionsService.canEditPhase(currentUser, project))
 			throw new ForbiddenException(
@@ -219,11 +222,6 @@ export class PhaseService {
 				`Invalid status transition from ${phase.status} to ${newStatus}`,
 			);
 		}
-
-		// Vérifier cohérence avec les steps
-
-		// redundance ? steps are already fetched by the relation in phase findOne
-		// const steps = await this.stepService.findAllByPhase(id);
 
 		if (newStatus === PhaseStatus.IN_PROGRESS && steps.length === 0) {
 			throw new BadRequestException('Cannot start a phase without steps');
@@ -261,6 +259,11 @@ export class PhaseService {
 		if (!phase) throw new NotFoundException('Phase not found');
 
 		const { project } = phase;
+
+		if (!this.permissionsService.canViewProject(currentUser, project))
+			throw new ForbiddenException(
+				'Only admin, project overseer or project member may view a project',
+			);
 
 		if (!this.permissionsService.canEditPhase(currentUser, project))
 			throw new ForbiddenException(
@@ -306,6 +309,11 @@ export class PhaseService {
 		if (!phase) throw new NotFoundException('Phase not found');
 
 		const { project } = phase;
+
+		if (!this.permissionsService.canViewProject(currentUser, project))
+			throw new ForbiddenException(
+				'Only admin, project overseer or project member may view a project',
+			);
 
 		if (!this.permissionsService.canDeletePhase(currentUser, project))
 			throw new ForbiddenException(

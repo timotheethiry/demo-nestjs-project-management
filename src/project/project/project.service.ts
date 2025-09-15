@@ -36,6 +36,9 @@ export class ProjectService {
 	) {}
 
 	async create(createProjectDto: CreateProjectDto, currentUser: JwtPayload) {
+		// Project acces permission: verified by RoleGuard in the controller
+		// No extra verification needed here
+
 		const cleanedDto = {
 			...createProjectDto,
 			context: createProjectDto.context?.trim() || null,
@@ -78,20 +81,37 @@ export class ProjectService {
 		return this.projectRepo.save(newProject);
 	}
 
-	findAll(currentUser: JwtPayload): Promise<Project[]> {
+	async findAll(currentUser: JwtPayload): Promise<Project[]> {
 		if (this.permissionsService.isAdmin(currentUser)) {
-			return this.projectRepo.find();
+			return this.projectRepo.find({
+				select: ['id', 'name', 'status', 'startDate', 'endDate'],
+				relations: ['department', 'overseer'],
+			});
 		} else {
-			console.log('projects masked for non granted viewing permission');
-			return this.projectRepo.find();
+			const user = await this.userService.findOne(currentUser.sub);
+
+			return this.projectRepo.find({
+				where: { department: { id: user.department.id } },
+				select: ['id', 'name', 'status', 'startDate', 'endDate'],
+				relations: ['department', 'overseer'],
+			});
 		}
 	}
 
 	async findOne(id: string, currentUser: JwtPayload): Promise<Project> {
 		const project = await this.projectRepo.findOne({
 			where: { id },
-			relations: ['department', 'overseer', 'members', 'phases', 'createdBy'],
+			relations: {
+				createdBy: true,
+				department: true,
+				overseer: true,
+				members: true,
+				phases: {
+					steps: true,
+				},
+			},
 		});
+
 		if (!project) throw new NotFoundException(`Project #${id} not found`);
 
 		if (!this.permissionsService.canViewProject(currentUser, project)) {
@@ -117,6 +137,10 @@ export class ProjectService {
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
+		}
+
+		if (!this.permissionsService.canViewProject(currentUser, project)) {
+			throw new ForbiddenException('Not allowed to view this project');
 		}
 
 		if (!this.permissionsService.canEditProject(currentUser, project)) {
@@ -277,6 +301,10 @@ export class ProjectService {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
 		}
 
+		if (!this.permissionsService.canViewProject(currentUser, project)) {
+			throw new ForbiddenException('Not allowed to view this project');
+		}
+
 		if (!this.permissionsService.canEditProject(currentUser, project))
 			throw new ForbiddenException(
 				'Only admins or project overseer may edit a project',
@@ -359,6 +387,10 @@ export class ProjectService {
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${projectId} not found.`);
+		}
+
+		if (!this.permissionsService.canViewProject(currentUser, project)) {
+			throw new ForbiddenException('Not allowed to view this project');
 		}
 
 		if (!this.permissionsService.canEditProject(currentUser, project)) {
@@ -449,6 +481,9 @@ export class ProjectService {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
 		}
 
+		// Project acces permission: verified by RoleGuard in the controller
+		// No extra verification needed here
+
 		if (!departmentId) {
 			throw new ForbiddenException(
 				'A project cannot be decommissioned or demobilized after creation. Department ID is required.',
@@ -501,6 +536,9 @@ export class ProjectService {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
 		}
 
+		// Project acces permission: verified by RoleGuard in the controller
+		// No extra verification needed here
+
 		if (!overseerId) {
 			throw new ForbiddenException(
 				'An overseer must be assigned. A project cannot exist without an overseer after creation.',
@@ -551,6 +589,10 @@ export class ProjectService {
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
+		}
+
+		if (!this.permissionsService.canViewProject(currentUser, project)) {
+			throw new ForbiddenException('Not allowed to view this project');
 		}
 
 		if (!this.permissionsService.canEditProject(currentUser, project)) {
@@ -660,6 +702,9 @@ export class ProjectService {
 	}
 
 	async remove(id: string): Promise<void> {
+		// Project acces permission: verified by RoleGuard in the controller
+		// No extra verification needed here
+
 		const result = await this.projectRepo.delete(id);
 		if (result.affected === 0)
 			throw new NotFoundException(`Project #${id} not found`);

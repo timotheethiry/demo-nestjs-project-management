@@ -73,7 +73,6 @@ export class Project {
 
 	@OneToMany(() => Phase, (phase) => phase.project, {
 		cascade: true,
-		eager: true,
 	})
 	phases: Phase[];
 }
