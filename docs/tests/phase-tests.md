@@ -45,7 +45,7 @@ Récupérer la phase -->✅ 200
 • [x] Projet avec status PROPOSED_CLOSED → ❌ 400
 • [x] Phase inexistante → ❌ 404
 • [x] Utilisateur sans permission → ❌ 403
-• [x] finir phase sans steps --> ❌ 403
+• [x] commencer phase sans steps --> ❌ 403
 • [x] finir phase avec steps pas toutes complétées --> ❌ 403
 
 🔹 5. updateOrder (PATCH /phases/:id/order)

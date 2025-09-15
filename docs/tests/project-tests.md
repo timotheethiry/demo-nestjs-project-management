@@ -92,8 +92,8 @@
 • [x] Tenter de déplacer une phase non terminée avant une phase terminée → ✅ Le système doit repositionner la phase non terminée après les phases terminées, et non renvoyer une erreur.
 
 🔹 10. findAll
-• [] Pas les phases ni les steps ni les tasks
-[] plus d'infos selon la permission ?
+• [x] admin vue synthétique tous projets --> 200
+[x] non admin vue synthétique projets du département --> 200
 
 🔹 11. findOne
 • [x] Utilisateur sans permission → infos minimes ou ❌ 403 ?

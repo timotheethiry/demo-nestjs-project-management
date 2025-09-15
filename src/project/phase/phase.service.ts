@@ -35,6 +35,8 @@ export class PhaseService {
 
 		if (!project) throw new NotFoundException('Project not found');
 
+		// Phase access permission: verified by ProjectService.findOne (aggregate root)
+
 		if (!this.permissionsService.canCreatePhase(currentUser, project))
 			throw new ForbiddenException(
 				'Only admin or project overseer may create a phase',
@@ -76,7 +78,7 @@ export class PhaseService {
 
 		if (!project) throw new NotFoundException('Project not found');
 
-		// Phase acces permission: verified by ProjectService.findOne (aggregate root)
+		// Phase access permission: verified by ProjectService.findOne (aggregate root)
 		// No extra verification needed here
 
 		return project.phases;
@@ -205,7 +207,7 @@ export class PhaseService {
 			].includes(project.status)
 		) {
 			throw new BadRequestException(
-				`Cannot update phase status for a project with this status: ${phase.project.status}`,
+				`Cannot update phase status for a project with this status: ${project.status}`,
 			);
 		}
 

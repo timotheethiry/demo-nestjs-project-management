@@ -36,7 +36,7 @@ export class ProjectService {
 	) {}
 
 	async create(createProjectDto: CreateProjectDto, currentUser: JwtPayload) {
-		// Project acces permission: verified by RoleGuard in the controller
+		// Project access permission: verified by RoleGuard in the controller
 		// No extra verification needed here
 
 		const cleanedDto = {
@@ -139,9 +139,7 @@ export class ProjectService {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
 		}
 
-		if (!this.permissionsService.canViewProject(currentUser, project)) {
-			throw new ForbiddenException('Not allowed to view this project');
-		}
+		// Project access permission: verified by ProjectService.findOne (aggregate root)
 
 		if (!this.permissionsService.canEditProject(currentUser, project)) {
 			throw new ForbiddenException('Not allowed to update this project');
@@ -301,9 +299,7 @@ export class ProjectService {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
 		}
 
-		if (!this.permissionsService.canViewProject(currentUser, project)) {
-			throw new ForbiddenException('Not allowed to view this project');
-		}
+		// Project access permission: verified by ProjectService.findOne (aggregate root)
 
 		if (!this.permissionsService.canEditProject(currentUser, project))
 			throw new ForbiddenException(
@@ -389,9 +385,7 @@ export class ProjectService {
 			throw new NotFoundException(`Project with ID ${projectId} not found.`);
 		}
 
-		if (!this.permissionsService.canViewProject(currentUser, project)) {
-			throw new ForbiddenException('Not allowed to view this project');
-		}
+		// Project access permission: verified by ProjectService.findOne (aggregate root)
 
 		if (!this.permissionsService.canEditProject(currentUser, project)) {
 			throw new ForbiddenException('Not allowed to update this project');
@@ -475,14 +469,14 @@ export class ProjectService {
 		{ departmentId }: UpdateProjectDepartmentDto,
 		currentUser: JwtPayload,
 	): Promise<Project> {
+		// Project access permission: verified by RoleGuard in the controller
+		// No extra verification needed here
+
 		const project = await this.findOne(id, currentUser);
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
 		}
-
-		// Project acces permission: verified by RoleGuard in the controller
-		// No extra verification needed here
 
 		if (!departmentId) {
 			throw new ForbiddenException(
@@ -530,14 +524,14 @@ export class ProjectService {
 		{ overseerId }: UpdateProjectOverseerDto,
 		currentUser: JwtPayload,
 	): Promise<Project> {
+		// Project acces permission: verified by RoleGuard in the controller
+		// No extra verification needed here
+
 		const project = await this.findOne(id, currentUser);
 
 		if (!project) {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
 		}
-
-		// Project acces permission: verified by RoleGuard in the controller
-		// No extra verification needed here
 
 		if (!overseerId) {
 			throw new ForbiddenException(
@@ -591,9 +585,7 @@ export class ProjectService {
 			throw new NotFoundException(`Project with ID ${id} not found.`);
 		}
 
-		if (!this.permissionsService.canViewProject(currentUser, project)) {
-			throw new ForbiddenException('Not allowed to view this project');
-		}
+		// Project access permission: verified by ProjectService.findOne (aggregate root)
 
 		if (!this.permissionsService.canEditProject(currentUser, project)) {
 			throw new ForbiddenException('Not allowed to update this project');
@@ -619,7 +611,6 @@ export class ProjectService {
 			);
 		}
 
-		// is it not the same the previous if statement
 		if (existingMembers.length === 0) {
 			throw new ForbiddenException(`No valid members found for assignment.`);
 		}

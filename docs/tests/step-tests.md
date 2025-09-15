@@ -25,7 +25,7 @@ Endpoint : GET /steps/:id
 Tests à réaliser :
 • [x] ✅ Step existante → retour 200 avec toutes les propriétés correctes
 • [x] ❌ Step inexistante → 404 NotFound
-• [x] ✅ Vérifier que les relations Phase / Project ? sont correctement incluses si tu les as chargées
+• [x] ✅ Vérifier que les relations Phase / Projet sont correctement incluses pour les permissions
 • [x] ❌ User sans permission → 403 Forbidden
 
 4️⃣ Mettre à jour le nom

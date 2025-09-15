@@ -17,12 +17,10 @@ import { UpdateStepNameDto } from './dto/update-step-name.dto';
 import { StepStatus } from '../types/step-status.enum';
 import { UpdateStepStatusDto } from './dto/update-step-status.dto';
 import { UpdateStepOrderDto } from './dto/update-step-order.dto';
-import { Phase } from '../phase/phase.entity';
 
 @Injectable()
 export class StepService {
 	constructor(
-		@InjectRepository(Phase) private phaseRepo: Repository<Phase>,
 		@InjectRepository(Step)
 		private readonly stepRepo: Repository<Step>,
 		private permissionsService: PermissionsService,
@@ -32,9 +30,14 @@ export class StepService {
 	async create(dto: CreateStepDto, currentUser: JwtPayload): Promise<Step> {
 		const phase = await this.phaseService.findOne(dto.phaseId, currentUser);
 
+		// redundant ? Existing phase already checked by phaseService.findOne
 		if (!phase) throw new NotFoundException('Phase not found');
 
-		if (!this.permissionsService.canCreateStep(currentUser, phase.project))
+		const { project } = phase;
+
+		// Step access permission: verified by PhaseService.findOne (permissionsService.canViewProject)
+
+		if (!this.permissionsService.canCreateStep(currentUser, project))
 			throw new ForbiddenException(
 				'Only admin, project overseer or project member may create a step',
 			);
@@ -50,10 +53,10 @@ export class StepService {
 				ProjectStatus.CANCELED.toString(),
 				ProjectStatus.PROPOSED_CLOSED.toString(),
 				ProjectStatus.CLOSED.toString(),
-			].includes(phase.project.status)
+			].includes(project.status)
 		) {
 			throw new BadRequestException(
-				`Cannot add step to a project with this status: ${phase.project.status}`,
+				`Cannot add step to a project with this status: ${project.status}`,
 			);
 		}
 
@@ -76,13 +79,11 @@ export class StepService {
 	async findAllByPhase(id: string, currentUser: JwtPayload): Promise<Step[]> {
 		const phase = await this.phaseService.findOne(id, currentUser);
 
+		// redundant ? Existing phase already checked by phaseService.findOne
 		if (!phase) throw new NotFoundException('Phase not found');
 
-		// redundance ? the same permission is checked in phaseService.findOne
-		if (!this.permissionsService.canReadStep(currentUser, phase.project))
-			throw new ForbiddenException(
-				'Only admin, project overseer or project member may read a step',
-			);
+		// Step access permission: verified by PhaseService.findOne (permissionsService.canViewProject)
+		// No extra verification needed here
 
 		return this.stepRepo.find({
 			where: { phase: { id } },
@@ -104,9 +105,9 @@ export class StepService {
 
 		const { phase } = step;
 
-		if (!this.permissionsService.canReadStep(currentUser, phase.project))
+		if (!this.permissionsService.canViewProject(currentUser, phase.project))
 			throw new ForbiddenException(
-				'Only admin, project overseer or project member may read a step',
+				'Only admin, project overseer or project member may view a project',
 			);
 		return step;
 	}
@@ -133,6 +134,11 @@ export class StepService {
 
 		const { phase } = step;
 		const { project } = phase;
+
+		if (!this.permissionsService.canViewProject(currentUser, project))
+			throw new ForbiddenException(
+				'Only admin, project overseer or project member may view a project',
+			);
 
 		if (!this.permissionsService.canEditStep(currentUser, project))
 			throw new ForbiddenException(
@@ -191,6 +197,11 @@ export class StepService {
 
 		const { phase } = step;
 		const { project } = phase;
+
+		if (!this.permissionsService.canViewProject(currentUser, project))
+			throw new ForbiddenException(
+				'Only admin, project overseer or project member may view a project',
+			);
 
 		if (!this.permissionsService.canEditStep(currentUser, project)) {
 			throw new ForbiddenException(
@@ -271,6 +282,11 @@ export class StepService {
 		const { phase } = step;
 		const { project } = phase;
 
+		if (!this.permissionsService.canViewProject(currentUser, project))
+			throw new ForbiddenException(
+				'Only admin, project overseer or project member may view a project',
+			);
+
 		if (!this.permissionsService.canEditStep(currentUser, project))
 			throw new ForbiddenException(
 				'Only an admin, a project overseer or a project member may update a step order',
@@ -323,6 +339,8 @@ export class StepService {
 
 		const { phase } = step;
 		const { project } = phase;
+
+		// Step access permission: verified by StepService.findOne (permissionsService.canViewProject)
 
 		if (!this.permissionsService.canDeleteStep(currentUser, project)) {
 			throw new ForbiddenException(
